@@ -1,0 +1,1 @@
+Place product images, logo files, icons and other assets here.
