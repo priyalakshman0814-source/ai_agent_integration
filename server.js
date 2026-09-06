@@ -1,4 +1,3 @@
-// 
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -10,7 +9,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const knowledgeFolder = path.join(__dirname, "knowledge");
+
+/* =========================================================
+   KNOWLEDGE BASE
+   ========================================================= */
+
+const knowledgePath = path.join(__dirname, "knowledge");
 
 const knowledgeFiles = [
   "company.md",
@@ -21,622 +25,837 @@ const knowledgeFiles = [
   "customer-guidance.md"
 ];
 
-// Load knowledge base
-let knowledgeBase = "";
+const knowledgeBase = {};
 
 for (const file of knowledgeFiles) {
-  const filePath = path.join(knowledgeFolder, file);
 
-  if (fs.existsSync(filePath)) {
-    const content = fs.readFileSync(filePath, "utf8");
+  const filePath = path.join(knowledgePath, file);
 
-    knowledgeBase += `
-===== ${file} =====
+  try {
 
-${content}
-`;
-  } else {
-    console.warn(`WARNING: Knowledge file not found: ${file}`);
+    knowledgeBase[file] = fs.readFileSync(
+      filePath,
+      "utf8"
+    );
+
+  } catch (error) {
+
+    console.error(`Could not load ${file}:`, error.message);
+
+    knowledgeBase[file] = "";
+
   }
+
 }
 
 console.log(
-  `Loaded ${knowledgeFiles.length} SOFT FLOWER knowledge files.`
+  `Loaded ${knowledgeFiles.length} Soft Flower knowledge files.`
 );
 
 
-// --------------------------------------------------
-// Helpers
-// --------------------------------------------------
-
-function normalize(text) {
-  return text
-    .toLowerCase()
-    .replace(/[₹,]/g, "")
-    .replace(/[?!.,]/g, "")
-    .trim();
-}
-
-
-function containsAny(text, words) {
-  return words.some(word => text.includes(word));
-}
-
-
-// --------------------------------------------------
-// Product data extracted from approved knowledge base
-// --------------------------------------------------
+/* =========================================================
+   APPROVED PRODUCT DATA
+   ========================================================= */
 
 const products = {
+
   goldenHour: {
     name: "Golden Hour Serum",
     category: "Facial Serum",
     price: "₹1,499",
     description:
-      "A lightweight facial serum designed to support a healthy-looking, radiant complexion.",
-    recommendedFor: [
-      "Radiance",
-      "Lightweight hydration",
-      "A simple daily serum"
-    ],
-    usage:
-      "Apply a small amount to clean skin before moisturizer.",
-    timing:
-      "Morning or evening",
+      "Lightweight facial serum that supports a healthy-looking radiant complexion.",
     ingredients: [
       "Hyaluronic Acid",
       "Niacinamide",
       "Vitamin E"
-    ]
+    ],
+    usage:
+      "Apply a small amount to clean skin before moisturizer, morning or evening."
   },
 
-  SOFTBloom: {
+  softBloom: {
     name: "SOFT Bloom Oil",
     category: "Facial Oil",
     price: "₹1,799",
     description:
-      "A nourishing facial oil designed to complement a moisturizing skincare routine.",
-    recommendedFor: [
-      "Nourishment",
-      "Soft-feeling skin",
-      "A richer skincare step"
-    ],
-    usage:
-      "Apply a few drops after serum or moisturizer.",
+      "Nourishing facial oil that complements a moisturizing skincare routine.",
     ingredients: [
       "Jojoba Oil",
       "Squalane",
       "Vitamin E"
-    ]
+    ],
+    usage:
+      "Apply a few drops after serum or moisturizer."
   },
 
-  midnight: {
+  midnightCream: {
     name: "Midnight Cream",
     category: "Moisturizer",
     price: "₹1,699",
     description:
-      "A rich moisturizer designed for an evening skincare routine.",
-    recommendedFor: [
-      "Rich moisturization",
-      "Night-time skincare",
-      "A comfortable final skincare step"
-    ],
-    usage:
-      "Apply to clean skin as the final step of an evening skincare routine.",
+      "Rich moisturizer designed for evening skincare.",
     ingredients: [
       "Ceramides",
       "Squalane",
       "Hyaluronic Acid"
-    ]
+    ],
+    usage:
+      "Apply to clean skin as the final step of an evening routine."
   }
+
 };
 
 
-// --------------------------------------------------
-// Local knowledge assistant
-// --------------------------------------------------
+/* =========================================================
+   GENERAL APPROVED INFORMATION
+   ========================================================= */
 
-function generateAnswer(message) {
-  const text = normalize(message);
+const approvedCategories = [
+  "Facial Serums",
+  "Facial Oils",
+  "Moisturizers",
+  "Cleansers",
+  "Body Care",
+  "Hair Care"
+];
 
-  // Empty message
-  if (!text) {
-    return "Please enter a question about SOFT FLOWER products, ingredients, routines, shipping, or returns.";
-  }
+const approvedShipping =
+  "Standard delivery generally takes 3–7 business days. Delivery times may vary depending on location.";
 
+const approvedReturns =
+  "Unopened and unused products may be eligible for return within 7 days. Opened or used products may not qualify.";
 
-  // -----------------------------------------------
-  // Medical / acne questions
-  // -----------------------------------------------
+const medicalResponse =
+  "Soft Flower products are not documented as treatments or cures for medical conditions. For medical concerns, please consult an appropriate healthcare professional.";
 
-  if (
-    containsAny(text, [
-      "acne",
-      "pimple",
-      "pimples",
-      "eczema",
-      "rosacea",
-      "medical",
-      "cure",
-      "treat",
-      "treatment",
-      "disease",
-      "condition"
-    ])
-  ) {
-    return (
-      "SOFT FLOWER products are not documented as treatments or cures for medical conditions. " +
-      "For medical concerns, please consult an appropriate healthcare professional."
-    );
-  }
+const unavailableResponse =
+  "That information is not currently available in the Soft Flower knowledge base.";
 
 
-  // -----------------------------------------------
-  // Sunscreen
-  // -----------------------------------------------
+/* =========================================================
+   TEXT NORMALIZATION
+   ========================================================= */
 
-  if (
-    containsAny(text, [
-      "sunscreen",
-      "sun screen",
-      "spf"
-    ])
-  ) {
-    return (
-      "That information is not currently available in the SOFT FLOWER knowledge base."
-    );
-  }
+function normalize(text) {
 
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s₹.-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  // -----------------------------------------------
-  // Product list
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "what products",
-      "products do you have",
-      "products do you sell",
-      "list products",
-      "available products",
-      "show products"
-    ])
-  ) {
-    return (
-      "SOFT FLOWER currently has these documented products:\n\n" +
-      "• Golden Hour Serum — ₹1,499\n" +
-      "• SOFT Bloom Oil — ₹1,799\n" +
-      "• Midnight Cream — ₹1,699"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Lightweight routine
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "lightweight routine",
-      "something lightweight",
-      "light routine",
-      "lightweight skincare"
-    ])
-  ) {
-    return (
-      "For a lightweight routine, Golden Hour Serum is the documented choice.\n\n" +
-      "• Golden Hour Serum — ₹1,499\n" +
-      "• Lightweight facial serum\n" +
-      "• Use a small amount on clean skin before moisturizer\n" +
-      "• Suitable for morning or evening use"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Nourishing routine
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "nourishing routine",
-      "nourishing",
-      "more nourishment",
-      "nourishing skincare"
-    ])
-  ) {
-    return (
-      "For a nourishing routine, SOFT Bloom Oil is the documented choice.\n\n" +
-      "• SOFT Bloom Oil — ₹1,799\n" +
-      "• Nourishing facial oil\n" +
-      "• A richer skincare step\n" +
-      "• Apply a few drops after serum or moisturizer"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Richer night routine
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "richer night",
-      "rich night",
-      "night routine",
-      "night skincare",
-      "evening routine"
-    ])
-  ) {
-    return (
-      "For a richer night routine, the documented options are:\n\n" +
-      "• SOFT Bloom Oil — ₹1,799\n" +
-      "• Midnight Cream — ₹1,699\n\n" +
-      "Midnight Cream is designed as a rich evening moisturizer and final skincare step."
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Three-product routine
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "all three",
-      "three products",
-      "use all",
-      "use them together",
-      "use everything together"
-    ])
-  ) {
-    return (
-      "Yes. The knowledge base documents this possible routine:\n\n" +
-      "1. Golden Hour Serum\n" +
-      "2. SOFT Bloom Oil\n" +
-      "3. Midnight Cream"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Dry skin
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "dry skin",
-      "skin is dry",
-      "dryness"
-    ])
-  ) {
-    return (
-      "If you're looking for a more nourishing step, SOFT Bloom Oil may be suitable. " +
-      "Midnight Cream is designed as a richer moisturizer for evening use."
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Golden Hour Serum
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "golden hour",
-      "golden hour serum"
-    ])
-  ) {
-
-    if (
-      containsAny(text, [
-        "ingredient",
-        "ingredients",
-        "what is inside"
-      ])
-    ) {
-      return (
-        "Golden Hour Serum contains:\n\n" +
-        "• Hyaluronic Acid\n" +
-        "• Niacinamide\n" +
-        "• Vitamin E"
-      );
-    }
-
-    if (
-      containsAny(text, [
-        "price",
-        "cost",
-        "how much"
-      ])
-    ) {
-      return "Golden Hour Serum costs ₹1,499.";
-    }
-
-    if (
-      containsAny(text, [
-        "use",
-        "usage",
-        "apply",
-        "how do i use"
-      ])
-    ) {
-      return (
-        "Apply a small amount of Golden Hour Serum to clean skin before moisturizer. " +
-        "It is recommended for morning or evening use."
-      );
-    }
-
-    return (
-      "Golden Hour Serum is a lightweight facial serum designed to support a healthy-looking, radiant complexion.\n\n" +
-      "Price: ₹1,499"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // SOFT Bloom Oil
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "SOFT bloom",
-      "SOFT bloom oil"
-    ])
-  ) {
-
-    if (
-      containsAny(text, [
-        "ingredient",
-        "ingredients",
-        "what is inside"
-      ])
-    ) {
-      return (
-        "SOFT Bloom Oil contains:\n\n" +
-        "• Jojoba Oil\n" +
-        "• Squalane\n" +
-        "• Vitamin E"
-      );
-    }
-
-    if (
-      containsAny(text, [
-        "price",
-        "cost",
-        "how much"
-      ])
-    ) {
-      return "SOFT Bloom Oil costs ₹1,799.";
-    }
-
-    if (
-      containsAny(text, [
-        "use",
-        "usage",
-        "apply",
-        "how do i use"
-      ])
-    ) {
-      return (
-        "Apply a few drops of SOFT Bloom Oil after serum or moisturizer."
-      );
-    }
-
-    return (
-      "SOFT Bloom Oil is a nourishing facial oil designed to complement a moisturizing skincare routine.\n\n" +
-      "Price: ₹1,799"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Midnight Cream
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "midnight",
-      "midnight cream"
-    ])
-  ) {
-
-    if (
-      containsAny(text, [
-        "ingredient",
-        "ingredients",
-        "what is inside"
-      ])
-    ) {
-      return (
-        "Midnight Cream contains:\n\n" +
-        "• Ceramides\n" +
-        "• Squalane\n" +
-        "• Hyaluronic Acid"
-      );
-    }
-
-    if (
-      containsAny(text, [
-        "price",
-        "cost",
-        "how much"
-      ])
-    ) {
-      return "Midnight Cream costs ₹1,699.";
-    }
-
-    if (
-      containsAny(text, [
-        "use",
-        "usage",
-        "apply",
-        "how do i use"
-      ])
-    ) {
-      return (
-        "Apply Midnight Cream to clean skin as the final step of an evening skincare routine."
-      );
-    }
-
-    return (
-      "Midnight Cream is a rich moisturizer designed for an evening skincare routine.\n\n" +
-      "Price: ₹1,699"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Ingredients in general
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "ingredients",
-      "ingredient list"
-    ])
-  ) {
-    return (
-      "The documented ingredients are:\n\n" +
-      "• Golden Hour Serum: Hyaluronic Acid, Niacinamide, Vitamin E\n" +
-      "• SOFT Bloom Oil: Jojoba Oil, Squalane, Vitamin E\n" +
-      "• Midnight Cream: Ceramides, Squalane, Hyaluronic Acid"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Shipping
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "shipping",
-      "delivery",
-      "deliver",
-      "how long",
-      "delivery time"
-    ])
-  ) {
-    return (
-      "Standard delivery generally takes 3–7 business days. " +
-      "Delivery times may vary depending on location."
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Returns
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "return",
-      "returns",
-      "send back",
-      "refund"
-    ])
-  ) {
-    return (
-      "Customers may request a return within 7 days of delivery.\n\n" +
-      "• Products must be unopened and unused.\n" +
-      "• Opened or used products may not qualify for return.\n" +
-      "• Approved refunds are processed after the returned product has been inspected."
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Damaged product
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "damaged",
-      "broken",
-      "arrived damaged"
-    ])
-  ) {
-    return (
-      "If your product arrives damaged, contact SOFT FLOWER customer support " +
-      "with your order details and photographs of the damaged product."
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Cancellation
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "cancel",
-      "cancellation"
-    ])
-  ) {
-    return (
-      "Orders may be cancelled before they are dispatched. " +
-      "Once an order has been dispatched, cancellation may no longer be possible."
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Categories
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "category",
-      "categories",
-      "what kind of products"
-    ])
-  ) {
-    return (
-      "SOFT FLOWER offers beauty and personal care products including:\n\n" +
-      "• Facial serums\n" +
-      "• Facial oils\n" +
-      "• Moisturizers\n" +
-      "• Cleansers\n" +
-      "• Body care\n" +
-      "• Hair care"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Greeting
-  // -----------------------------------------------
-
-  if (
-    containsAny(text, [
-      "hello",
-      "hi",
-      "hey",
-      "good morning",
-      "good evening"
-    ])
-  ) {
-    return (
-      "Hello. I'm the SOFT FLOWER Intelligence Assistant. " +
-      "How can I help you today?"
-    );
-  }
-
-
-  // -----------------------------------------------
-  // Unknown question
-  // -----------------------------------------------
-
-  return (
-    "That information is not currently available in the SOFT FLOWER knowledge base."
-  );
 }
 
 
-// --------------------------------------------------
-// Chat API
-// --------------------------------------------------
+/* =========================================================
+   PRODUCT DETECTION
+   ========================================================= */
+
+function detectProduct(text) {
+
+  const message = normalize(text);
+
+  if (
+    message.includes("golden hour") ||
+    message.includes("serum")
+  ) {
+    return products.goldenHour;
+  }
+
+  if (
+    message.includes("soft bloom") ||
+    message.includes("bloom oil") ||
+    message.includes("facial oil")
+  ) {
+    return products.softBloom;
+  }
+
+  if (
+    message.includes("midnight") ||
+    message.includes("cream") ||
+    message.includes("moisturizer")
+  ) {
+    return products.midnightCream;
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   INTENT DETECTION
+   ========================================================= */
+
+function detectIntent(text) {
+
+  const message = normalize(text);
+
+  if (!message) {
+    return "unknown";
+  }
+
+
+  /* Medical */
+
+  if (
+    /\bacne\b/.test(message) ||
+    /\btreat\b/.test(message) ||
+    /\bcure\b/.test(message) ||
+    /\bprevent\b/.test(message) ||
+    /\bmedical\b/.test(message) ||
+    /\bcondition\b/.test(message) ||
+    /\beczema\b/.test(message) ||
+    /\bdermatitis\b/.test(message)
+  ) {
+    return "medical";
+  }
+
+
+  /* Sunscreen */
+
+  if (
+    message.includes("sunscreen") ||
+    message.includes("sun screen") ||
+    message.includes("spf")
+  ) {
+    return "sunscreen";
+  }
+
+
+  /* Product list */
+
+  if (
+    message.includes("what products") ||
+    message.includes("which products") ||
+    message.includes("products do you have") ||
+    message.includes("list products") ||
+    message.includes("available products")
+  ) {
+    return "product-list";
+  }
+
+
+  /* All products */
+
+  if (
+    message.includes("all three") ||
+    message.includes("three products") ||
+    message.includes("use all")
+  ) {
+    return "all-products";
+  }
+
+
+  /* Lightweight */
+
+  if (
+    message.includes("lightweight") ||
+    message.includes("light routine") ||
+    message.includes("simple routine")
+  ) {
+    return "lightweight";
+  }
+
+
+  /* Nourishing */
+
+  if (
+    message.includes("nourishing") ||
+    message.includes("nourish") ||
+    message.includes("more nourishment")
+  ) {
+    return "nourishing";
+  }
+
+
+  /* Rich night */
+
+  if (
+    message.includes("richer night") ||
+    message.includes("rich night") ||
+    message.includes("night routine") ||
+    message.includes("evening routine") ||
+    message.includes("rich moisturizer")
+  ) {
+    return "rich-night";
+  }
+
+
+  /* Dry skin */
+
+  if (
+    message.includes("dry skin") ||
+    message.includes("dryness")
+  ) {
+    return "dry-skin";
+  }
+
+
+  /* Ingredients */
+
+  if (
+    message.includes("ingredient") ||
+    message.includes("ingredients")
+  ) {
+    return "ingredients";
+  }
+
+
+  /* Price */
+
+  if (
+    message.includes("price") ||
+    message.includes("cost") ||
+    message.includes("how much") ||
+    message.includes("₹")
+  ) {
+    return "price";
+  }
+
+
+  /* Usage */
+
+  if (
+    message.includes("how to use") ||
+    message.includes("how do i use") ||
+    message.includes("when to use") ||
+    message.includes("apply")
+  ) {
+    return "usage";
+  }
+
+
+  /* Shipping */
+
+  if (
+    message.includes("shipping") ||
+    message.includes("delivery") ||
+    message.includes("deliver") ||
+    message.includes("how long")
+  ) {
+    return "shipping";
+  }
+
+
+  /* Returns */
+
+  if (
+    message.includes("return") ||
+    message.includes("refund") ||
+    message.includes("opened product") ||
+    message.includes("used product")
+  ) {
+    return "returns";
+  }
+
+
+  /* Damaged order */
+
+  if (
+    message.includes("damaged") ||
+    message.includes("broken") ||
+    message.includes("arrived damaged")
+  ) {
+    return "damaged";
+  }
+
+
+  /* Cancellation */
+
+  if (
+    message.includes("cancel") ||
+    message.includes("cancellation")
+  ) {
+    return "cancellation";
+  }
+
+
+  /* Categories */
+
+  if (
+    message.includes("categories") ||
+    message.includes("category") ||
+    message.includes("what do you sell")
+  ) {
+    return "categories";
+  }
+
+
+  /* Greetings */
+
+  if (
+    message === "hi" ||
+    message === "hello" ||
+    message === "hey" ||
+    message.includes("good morning") ||
+    message.includes("good evening")
+  ) {
+    return "greeting";
+  }
+
+
+  /* Product-specific general question */
+
+  if (detectProduct(message)) {
+    return "product-general";
+  }
+
+
+  return "unknown";
+}
+
+
+/* =========================================================
+   FOLLOW-UP CONTEXT
+   ========================================================= */
+
+function getLastProduct(history) {
+
+  if (!Array.isArray(history)) {
+    return null;
+  }
+
+  for (let i = history.length - 1; i >= 0; i--) {
+
+    const item = history[i];
+
+    if (!item || typeof item.content !== "string") {
+      continue;
+    }
+
+    const product = detectProduct(item.content);
+
+    if (product) {
+      return product;
+    }
+
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   PRODUCT RESPONSE HELPERS
+   ========================================================= */
+
+function productListResponse() {
+
+  return `Soft Flower currently has these documented products:
+
+• ${products.goldenHour.name} — ${products.goldenHour.price}
+• ${products.softBloom.name} — ${products.softBloom.price}
+• ${products.midnightCream.name} — ${products.midnightCream.price}`;
+
+}
+
+
+function productIngredientsResponse(product) {
+
+  return `${product.name} contains:
+
+• ${product.ingredients.join("\n• ")}`;
+
+}
+
+
+function productPriceResponse(product) {
+
+  return `${product.name} is priced at ${product.price}.`;
+
+}
+
+
+function productUsageResponse(product) {
+
+  return `For ${product.name}:
+
+• ${product.usage}`;
+
+}
+
+
+/* =========================================================
+   ROUTINE RESPONSES
+   ========================================================= */
+
+function lightweightResponse() {
+
+  return `For a lightweight routine, Golden Hour Serum is the documented choice.
+
+• ${products.goldenHour.name} — ${products.goldenHour.price}
+• Lightweight facial serum
+• Use a small amount on clean skin before moisturizer
+• Suitable for morning or evening use`;
+
+}
+
+
+function nourishingResponse() {
+
+  return `For a nourishing routine, SOFT Bloom Oil is the documented choice.
+
+• ${products.softBloom.name} — ${products.softBloom.price}
+• Nourishing facial oil
+• A richer skincare step
+• Apply a few drops after serum or moisturizer`;
+
+}
+
+
+function richNightResponse() {
+
+  return `For a richer night routine, the documented options are:
+
+1. ${products.softBloom.name} — ${products.softBloom.price}
+2. ${products.midnightCream.name} — ${products.midnightCream.price}
+
+• SOFT Bloom Oil is a nourishing facial oil.
+• Midnight Cream is a rich evening moisturizer.`;
+
+}
+
+
+function allProductsRoutineResponse() {
+
+  return `Yes. The knowledge base documents this possible routine:
+
+1. ${products.goldenHour.name}
+2. ${products.softBloom.name}
+3. ${products.midnightCream.name}`;
+
+}
+
+
+function drySkinResponse() {
+
+  return `For dry skin, the documented options are:
+
+• ${products.softBloom.name} — a nourishing facial oil
+• ${products.midnightCream.name} — a richer evening moisturizer
+
+Golden Hour Serum is the lighter option.`;
+
+}
+
+
+/* =========================================================
+   GENERAL KNOWLEDGE SEARCH
+   ========================================================= */
+
+function searchKnowledge(keywords) {
+
+  const results = [];
+
+  for (const [file, content] of Object.entries(knowledgeBase)) {
+
+    const normalizedContent =
+      normalize(content);
+
+    let score = 0;
+
+    for (const keyword of keywords) {
+
+      if (
+        normalizedContent.includes(
+          normalize(keyword)
+        )
+      ) {
+        score++;
+      }
+
+    }
+
+    if (score > 0) {
+
+      results.push({
+        file,
+        score
+      });
+
+    }
+
+  }
+
+  return results.sort(
+    (a, b) => b.score - a.score
+  );
+
+}
+
+
+/* =========================================================
+   AGENT RESPONSE ENGINE
+   ========================================================= */
+
+function generateAnswer(userMessage, history = []) {
+
+  const message =
+    normalize(userMessage);
+
+  const intent =
+    detectIntent(userMessage);
+
+  const currentProduct =
+    detectProduct(userMessage);
+
+  const previousProduct =
+    getLastProduct(history);
+
+  const product =
+    currentProduct || previousProduct;
+
+
+  /* ===================================================
+     MEDICAL GUARDRAIL
+     =================================================== */
+
+  if (intent === "medical") {
+    return medicalResponse;
+  }
+
+
+  /* ===================================================
+     UNSUPPORTED SUNSCREEN
+     =================================================== */
+
+  if (intent === "sunscreen") {
+    return unavailableResponse;
+  }
+
+
+  /* ===================================================
+     GREETING
+     =================================================== */
+
+  if (intent === "greeting") {
+
+    return `Hello. I'm the Soft Flower Intelligence Assistant.
+
+I can help with Soft Flower products, ingredients, routines, shipping and returns.`;
+
+  }
+
+
+  /* ===================================================
+     PRODUCT LIST
+     =================================================== */
+
+  if (intent === "product-list") {
+    return productListResponse();
+  }
+
+
+  /* ===================================================
+     ALL THREE PRODUCTS
+     =================================================== */
+
+  if (intent === "all-products") {
+    return allProductsRoutineResponse();
+  }
+
+
+  /* ===================================================
+     ROUTINES
+     =================================================== */
+
+  if (intent === "lightweight") {
+    return lightweightResponse();
+  }
+
+  if (intent === "nourishing") {
+    return nourishingResponse();
+  }
+
+  if (intent === "rich-night") {
+    return richNightResponse();
+  }
+
+  if (intent === "dry-skin") {
+    return drySkinResponse();
+  }
+
+
+  /* ===================================================
+     INGREDIENTS
+     =================================================== */
+
+  if (intent === "ingredients") {
+
+    if (product) {
+      return productIngredientsResponse(product);
+    }
+
+    return `The documented Soft Flower ingredients are:
+
+• ${products.goldenHour.name}: ${products.goldenHour.ingredients.join(", ")}
+• ${products.softBloom.name}: ${products.softBloom.ingredients.join(", ")}
+• ${products.midnightCream.name}: ${products.midnightCream.ingredients.join(", ")}`;
+
+  }
+
+
+  /* ===================================================
+     PRICE
+     =================================================== */
+
+  if (intent === "price") {
+
+    if (product) {
+      return productPriceResponse(product);
+    }
+
+    return productListResponse();
+  }
+
+
+  /* ===================================================
+     USAGE
+     =================================================== */
+
+  if (intent === "usage") {
+
+    if (product) {
+      return productUsageResponse(product);
+    }
+
+    return unavailableResponse;
+  }
+
+
+  /* ===================================================
+     SHIPPING
+     =================================================== */
+
+  if (intent === "shipping") {
+    return approvedShipping;
+  }
+
+
+  /* ===================================================
+     RETURNS
+     =================================================== */
+
+  if (intent === "returns") {
+    return approvedReturns;
+  }
+
+
+  /* ===================================================
+     DAMAGED ORDER
+     =================================================== */
+
+  if (intent === "damaged") {
+
+    return `If your order arrives damaged, please contact Soft Flower support with your order details and photos of the damage.`;
+
+  }
+
+
+  /* ===================================================
+     CANCELLATION
+     =================================================== */
+
+  if (intent === "cancellation") {
+
+    return `Orders can be cancelled before dispatch. After dispatch, cancellation may not be possible.`;
+
+  }
+
+
+  /* ===================================================
+     CATEGORIES
+     =================================================== */
+
+  if (intent === "categories") {
+
+    return `Soft Flower's documented categories include:
+
+• ${approvedCategories.join("\n• ")}`;
+
+  }
+
+
+  /* ===================================================
+     PRODUCT GENERAL
+     =================================================== */
+
+  if (
+    intent === "product-general" &&
+    product
+  ) {
+
+    return `${product.name}
+
+• ${product.category}
+• ${product.price}
+• ${product.description}
+• Ingredients: ${product.ingredients.join(", ")}`;
+
+  }
+
+
+  /* ===================================================
+     SIMPLE FOLLOW-UP QUESTIONS
+     =================================================== */
+
+  if (
+    product &&
+    (
+      message.includes("what is it") ||
+      message.includes("tell me more") ||
+      message.includes("this product") ||
+      message.includes("that product")
+    )
+  ) {
+
+    return `${product.name}
+
+• ${product.category}
+• ${product.price}
+• ${product.description}
+• Ingredients: ${product.ingredients.join(", ")}
+• ${product.usage}`;
+
+  }
+
+
+  /* ===================================================
+     KNOWLEDGE SEARCH FALLBACK
+     =================================================== */
+
+  const keywords =
+    message
+      .split(" ")
+      .filter(word => word.length >= 5);
+
+  const matches =
+    searchKnowledge(keywords);
+
+  if (matches.length > 0) {
+
+    return `I found related information in the Soft Flower knowledge base, but I don't have enough approved information to answer that question precisely.
+
+Please try asking about Soft Flower products, ingredients, routines, shipping or returns.`;
+
+  }
+
+
+  /* ===================================================
+     FINAL SAFE FALLBACK
+     =================================================== */
+
+  return `I can help with Soft Flower products, ingredients, routines, shipping and returns.
+
+I don't currently have enough approved information in the knowledge base to answer that question.`;
+
+}
+
+
+/* =========================================================
+   API
+   ========================================================= */
 
 app.post("/api/chat", (req, res) => {
 
@@ -647,25 +866,43 @@ app.post("/api/chat", (req, res) => {
         ? req.body.message.trim()
         : "";
 
+    const history =
+      Array.isArray(req.body.history)
+        ? req.body.history
+        : [];
+
+
     if (!message) {
+
       return res.status(400).json({
-        error: "Message is required."
+        error: "Please enter a message."
       });
+
     }
 
-    const reply = generateAnswer(message);
 
-    res.json({
+    const reply =
+      generateAnswer(
+        message,
+        history
+      );
+
+
+    return res.json({
       reply
     });
 
+
   } catch (error) {
 
-    console.error("CHAT ERROR:", error);
+    console.error(
+      "Chat error:",
+      error
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
       error:
-        "The SOFT FLOWER Intelligence Assistant is temporarily unavailable."
+        "The Soft Flower AI assistant is temporarily unavailable."
     });
 
   }
@@ -673,16 +910,17 @@ app.post("/api/chat", (req, res) => {
 });
 
 
-// --------------------------------------------------
-// Start server
-// --------------------------------------------------
+/* =========================================================
+   SERVER
+   ========================================================= */
 
-const PORT = 3000;
+const PORT =
+  process.env.PORT || 3000;
 
 app.listen(PORT, () => {
 
   console.log(
-    `SOFT FLOWER AI running at http://localhost:${PORT}`
+    `Soft Flower AI running at http://localhost:${PORT}`
   );
 
 });
