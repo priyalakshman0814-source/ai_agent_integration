@@ -191,6 +191,20 @@ function generateAnswer(message) {
   // -----------------------------------------------
   // Product list
   // -----------------------------------------------
+if (
+  containsAny(text, [
+    "skincare",
+    "skin care",
+    "skin routine",
+    "skin",
+    "skincare routine",
+    "skin care routine",
+    "routine help",
+    "help with skincare"
+  ])
+) {
+  return "routine";
+}
 
   if (
     containsAny(text, [
@@ -242,6 +256,7 @@ function generateAnswer(message) {
       "nourishing routine",
       "nourishing",
       "more nourishment",
+      "skin care routine",
       "nourishing skincare"
     ])
   ) {
