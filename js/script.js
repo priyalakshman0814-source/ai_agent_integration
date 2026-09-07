@@ -333,7 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const response =
         await fetch(
-          "/api/chat",
+            "https://soft-flower-ai.onrender.com/api/chat",
           {
             method: "POST",
 
