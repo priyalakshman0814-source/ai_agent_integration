@@ -414,7 +414,15 @@ function skinGuidance(text) {
       "described as a lightweight serum."
     );
   }
-
+  if (
+  text.includes("nourishing") &&
+  (text.includes("routine") || text.includes("skincare"))
+) {
+  return (
+    "SOFT Bloom Oil may be suitable if you're looking for " +
+    "a more nourishing step in your routine."
+  );
+}
   if (
     (text.includes("rich") || text.includes("richer")) &&
     (text.includes("night") || text.includes("routine"))
