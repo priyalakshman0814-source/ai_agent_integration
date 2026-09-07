@@ -1450,3 +1450,20 @@ a {
     font-size: 11px;
   }
 }
+/* Chat layout: controls above conversation */
+.chatbot-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-controls {
+  order: 1;
+}
+
+.chatbot-input {
+  order: 2;
+}
+
+.chatbot-messages {
+  order: 3;
+}

@@ -149,7 +149,7 @@
       <div class="products-grid">
 
 
-        <!-- GOLDEN HOUR -->
+        <!-- GOLDEN HOUR SERUM -->
 
         <article class="product-card">
 
@@ -204,7 +204,7 @@
         </article>
 
 
-        <!-- WILD BLOOM -->
+        <!-- SOFT BLOOM OIL -->
 
         <article class="product-card">
 
@@ -235,7 +235,7 @@
             <div>
 
               <h3>
-                Wild Bloom Oil
+                SOFT Bloom Oil
               </h3>
 
               <p>
@@ -345,217 +345,196 @@
       </div>
 
 
-      <div class="chatbot-card">
+     <div class="chatbot-card">
 
+  <!-- CHAT HEADER -->
 
-        <!-- CHAT HEADER -->
+  <div class="chat-header">
 
-        <div class="chat-header">
+    <div>
+      <strong>
+        SOFT FLOWER AI
+      </strong>
 
-          <div>
+      <span>
+        Product guidance assistant
+      </span>
+    </div>
 
-            <strong>
-              SOFT FLOWER AI
-            </strong>
+    <span class="status">
+      ● READY
+    </span>
 
-            <span>
-              Product guidance assistant
-            </span>
+  </div>
 
-          </div>
 
-          <span class="status">
-            ● READY
-          </span>
+  <!-- RECOMMENDATIONS -->
 
-        </div>
+  <div class="quick-options">
 
+    <p>
+      What are you looking for?
+    </p>
 
-        <!-- MESSAGES -->
+    <div class="option-row">
 
-        <div class="messages">
+      <label class="choice">
+        <input
+          type="radio"
+          name="routine"
+          value="lightweight routine"
+        >
 
-          <div class="system">
-            Hello. I'm the Soft Flower Intelligence Assistant.
-            <br>
-            How can I help you today?
-          </div>
+        <span>
+          Lightweight
+        </span>
+      </label>
 
-          <div class="assistant">
-            Choose a routine or ask me anything about Soft Flower.
-          </div>
 
-        </div>
+      <label class="choice">
+        <input
+          type="radio"
+          name="routine"
+          value="nourishing routine"
+        >
 
+        <span>
+          Nourishing
+        </span>
+      </label>
 
-        <!-- QUICK OPTIONS -->
 
-        <div class="quick-options">
+      <label class="choice">
+        <input
+          type="radio"
+          name="routine"
+          value="richer night routine"
+        >
 
-          <p>
-            What are you looking for?
-          </p>
+        <span>
+          Richer night
+        </span>
+      </label>
 
+    </div>
 
-          <div class="option-row">
 
-            <label class="choice">
+    <p>
+      Or choose what you need help with:
+    </p>
 
-              <input
-                type="radio"
-                name="routine"
-                value="lightweight routine"
-              >
 
-              <span>
-                Lightweight
-              </span>
+    <div class="option-row">
 
-            </label>
+      <label class="choice">
+        <input
+          type="checkbox"
+          name="help"
+          value="Products"
+        >
 
+        <span>
+          Products
+        </span>
+      </label>
 
-            <label class="choice">
 
-              <input
-                type="radio"
-                name="routine"
-                value="nourishing routine"
-              >
+      <label class="choice">
+        <input
+          type="checkbox"
+          name="help"
+          value="Ingredients"
+        >
 
-              <span>
-                Nourishing
-              </span>
+        <span>
+          Ingredients
+        </span>
+      </label>
 
-            </label>
 
+      <label class="choice">
+        <input
+          type="checkbox"
+          name="help"
+          value="Skincare routine"
+        >
 
-            <label class="choice">
+        <span>
+          Routine
+        </span>
+      </label>
 
-              <input
-                type="radio"
-                name="routine"
-                value="richer night routine"
-              >
 
-              <span>
-                Richer night
-              </span>
+      <label class="choice">
+        <input
+          type="checkbox"
+          name="help"
+          value="Shipping"
+        >
 
-            </label>
+        <span>
+          Shipping
+        </span>
+      </label>
 
-          </div>
 
+      <label class="choice">
+        <input
+          type="checkbox"
+          name="help"
+          value="Returns"
+        >
 
-          <p>
-            Or choose what you need help with:
-          </p>
+        <span>
+          Returns
+        </span>
+      </label>
 
+    </div>
 
-          <div class="option-row">
+  </div>
 
-            <label class="choice">
 
-              <input
-                type="checkbox"
-                name="help"
-                value="Products"
-              >
+  <!-- CONVERSATION / MESSAGES -->
 
-              <span>
-                Products
-              </span>
+  <div class="messages">
 
-            </label>
+    <div class="system">
+      Hello. I'm the Soft Flower Intelligence Assistant.
+      <br>
+      How can I help you today?
+    </div>
 
+    <div class="assistant">
+      Choose a routine or ask me anything about Soft Flower.
+    </div>
 
-            <label class="choice">
+  </div>
 
-              <input
-                type="checkbox"
-                name="help"
-                value="Ingredients"
-              >
 
-              <span>
-                Ingredients
-              </span>
+  <!-- TYPING / INPUT -->
 
-            </label>
+  <div class="chat-input">
 
+    <input
+      id="ai-input"
+      type="text"
+      placeholder="Ask about products, ingredients, shipping..."
+      autocomplete="off"
+      aria-label="Ask Soft Flower AI"
+    >
 
-            <label class="choice">
+    <button
+      id="send"
+      type="button"
+      aria-label="Send message"
+    >
+      ↑
+    </button>
 
-              <input
-                type="checkbox"
-                name="help"
-                value="Skincare routine"
-              >
+  </div>
 
-              <span>
-                Routine
-              </span>
-
-            </label>
-
-
-            <label class="choice">
-
-              <input
-                type="checkbox"
-                name="help"
-                value="Shipping"
-              >
-
-              <span>
-                Shipping
-              </span>
-
-            </label>
-
-
-            <label class="choice">
-
-              <input
-                type="checkbox"
-                name="help"
-                value="Returns"
-              >
-
-              <span>
-                Returns
-              </span>
-
-            </label>
-
-          </div>
-
-        </div>
-
-
-        <!-- INPUT -->
-
-        <div class="chat-input">
-
-          <input
-            id="ai-input"
-            type="text"
-            placeholder="Ask about products, ingredients, shipping..."
-            autocomplete="off"
-            aria-label="Ask Soft Flower AI"
-          >
-
-          <button
-            id="send"
-            type="button"
-            aria-label="Send message"
-          >
-            ↑
-          </button>
-
-        </div>
-
-      </div>
-
+</div>
     </section>
 
   </main>
@@ -583,6 +562,8 @@
 
   </footer>
 
+
+  <!-- ================= JAVASCRIPT ================= -->
 
   <script src="js/script.js"></script>
 
