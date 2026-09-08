@@ -101,6 +101,7 @@ function normalize(text) {
   return String(text || "")
     .toLowerCase()
     .replace(/[’']/g, "'")
+    .replace(/[?!.,;:]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
